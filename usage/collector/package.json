@@ -1,0 +1,19 @@
+{
+  "name": "@intretech/skill-usage-agent",
+  "version": "0.1.0",
+  "description": "Local SSO helper and host adapters for Skill Usage V1",
+  "type": "module",
+  "bin": {
+    "usage": "src/cli.js",
+    "usage-agent": "src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "optionalDependencies": {
+    "keytar": "^7.9.0"
+  }
+}

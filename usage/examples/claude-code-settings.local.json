@@ -1,0 +1,47 @@
+{
+  "env": {
+    "USAGE_API_BASE_URL": "http://10.133.5.15:18080",
+    "USAGE_OIDC_ISSUER": "http://10.130.79.3:8080/realms/test",
+    "USAGE_OIDC_CLIENT_ID": "skill-usage",
+    "USAGE_OIDC_REDIRECT_URI": "http://127.0.0.1:8765/callback"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "<USAGE_AGENT_BIN> record --host claude-code --stdin",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "<USAGE_AGENT_BIN> record --host claude-code --stdin",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "<USAGE_AGENT_BIN> record --host claude-code --stdin",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}
+
