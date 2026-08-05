@@ -21,9 +21,28 @@ function toolInput(raw) {
   return raw.tool_input || raw.toolInput || raw.input || {};
 }
 
+function hookEventName(raw) {
+  return firstValue(raw.hook_event_name, raw.hookEvent, raw.event);
+}
+
+function expansionType(raw) {
+  return firstValue(raw.expansion_type, raw.expansionType);
+}
+
+function commandName(raw) {
+  return firstValue(raw.command_name, raw.commandName);
+}
+
+function isDirectSlashExpansion(raw) {
+  return String(hookEventName(raw) || '').toLowerCase() === 'userpromptexpansion'
+    && String(expansionType(raw) || '').toLowerCase() === 'slash_command'
+    && commandName(raw) != null;
+}
+
 function pickSkillName(raw) {
   const input = toolInput(raw);
-  const skill = raw.skill || raw.skillName || raw.skill_name || input.skill || input.skillName || input.name;
+  const skill = raw.skill || raw.skillName || raw.skill_name || input.skill || input.skillName || input.name
+    || (isDirectSlashExpansion(raw) ? commandName(raw) : null);
   if (typeof skill === 'object' && skill !== null) {
     return firstValue(skill.name, skill.skillName);
   }
@@ -31,6 +50,9 @@ function pickSkillName(raw) {
 }
 
 function looksLikeSkillEvent(raw) {
+  if (String(hookEventName(raw) || '').toLowerCase() === 'userpromptexpansion') {
+    return isDirectSlashExpansion(raw);
+  }
   if (raw.eventType === 'skill_invocation' || raw.skillName || raw.skill_name) return true;
   const toolName = String(firstValue(raw.tool_name, raw.toolName, raw.tool) || '').toLowerCase();
   return SKILL_TOOL_NAMES.has(toolName);
@@ -46,7 +68,7 @@ function canonicalSkillName(value) {
 function outcomeFor(raw) {
   const explicit = String(raw.outcome || raw.status || '').toLowerCase();
   if (TERMINAL_OUTCOMES.has(explicit)) return explicit;
-  const hookEvent = String(raw.hook_event_name || raw.hookEvent || raw.event || '').toLowerCase();
+  const hookEvent = String(hookEventName(raw) || '').toLowerCase();
   if (hookEvent.includes('denied') || hookEvent.includes('permission')) return 'denied';
   if (hookEvent.includes('failure') || hookEvent.includes('error')) return 'failed';
   if (hookEvent.includes('post') || hookEvent.includes('complete') || hookEvent.includes('success')) return 'succeeded';
@@ -76,8 +98,9 @@ export function normalizeHostEvent(raw, host) {
   const normalizedSessionId = sessionId == null ? null : String(sessionId).slice(0, 255);
   const eventSeed = normalizedInvocationId
     ? `${host}|${normalizedSessionId || ''}|${normalizedInvocationId}|${skillName}`
-    : `${host}|${normalizedSessionId || ''}|${skillName}|${raw.invokedAt || raw.invoked_at || raw.timestamp || crypto.randomUUID()}`;
+    : `${host}|${normalizedSessionId || ''}|${skillName}|${crypto.randomUUID()}`;
   const eventId = raw.eventId || stableUuid(eventSeed);
+  const rawHookEvent = hookEventName(raw);
 
   return {
     eventId,
@@ -93,7 +116,7 @@ export function normalizeHostEvent(raw, host) {
     invokedAt: raw.invokedAt || raw.invoked_at || new Date().toISOString(),
     metadata: {
       ...(raw.hostVersion || raw.host_version ? { hostVersion: String(raw.hostVersion || raw.host_version).slice(0, 256) } : {}),
-      ...(raw.hook_event_name || raw.hookEvent ? { hookEvent: String(raw.hook_event_name || raw.hookEvent).slice(0, 256) } : {}),
+      ...(rawHookEvent ? { hookEvent: String(rawHookEvent).slice(0, 256) } : {}),
       collectorVersion: '0.1.0'
     }
   };

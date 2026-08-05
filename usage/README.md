@@ -106,7 +106,7 @@ printf '%s\n' "$USAGE_AGENT_BIN"
 usage/examples/claude-code-settings.local.json
 ```
 
-核心 Hook 必须包含 `PreToolUse`、`PostToolUse` 和 `PostToolUseFailure`，并使用 `matcher: "Skill"`：
+`Skill` 工具调用的核心 Hook 必须包含 `PreToolUse`、`PostToolUse` 和 `PostToolUseFailure`，并使用 `matcher: "Skill"`。用户直接输入 `/skill-name` 不会触发匹配 `Skill` 的 `PreToolUse`，还需要增加 `UserPromptExpansion` 的空 matcher：
 
 ```json
 {
@@ -140,12 +140,22 @@ usage/examples/claude-code-settings.local.json
         "command": "<USAGE_AGENT_BIN> record --host claude-code --stdin",
         "timeout": 3
       }]
+    }],
+    "UserPromptExpansion": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "<USAGE_AGENT_BIN> record --host claude-code --stdin",
+        "timeout": 3
+      }]
     }]
   }
 }
 ```
 
 如果 `.claude/settings.local.json` 已存在，必须保留原有 `env`、`hooks` 和其他键，只合并新增条目；不要直接替换整个文件。此文件通常是本机配置，不要把真实 Token 写入其中。
+
+`Skill` 工具调用由 `PreToolUse`/`PostToolUse`/`PostToolUseFailure` 捕获；用户直接输入 `/skill-name` 由 `UserPromptExpansion` 捕获。该 Hook 使用空 matcher 监听所有 Prompt 类型的 Slash 命令，采集器只接受 `expansion_type=slash_command`，会忽略 `mcp_prompt`、普通 Prompt 和普通工具事件，且不保存 `command_args`、原始 Prompt 或项目路径。
 
 ## 5. 真实验证
 
@@ -172,7 +182,7 @@ claude --settings .claude/settings.local.json \
 usage-agent flush
 ```
 
-一次 Skill 调用只产生一条逻辑统计。Hook 重试、开始/完成事件通过调用标识幂等合并，不应重复计数。
+还应直接输入一次无副作用的 Slash Skill，例如 `/pptx`，并确认输出中出现 `UserPromptExpansion`。直接 Slash 没有稳定的终态 Hook，因此按一次展开记录一条 `started`；没有宿主调用 ID 时，每次 Hook 会生成独立事件 ID。相同宿主调用 ID 的工具 Hook 仍按事件 ID 幂等合并。
 
 ## 6. Outbox 与故障降级
 
@@ -202,6 +212,14 @@ usage-agent login
 usage-agent logout
 usage-agent flush
 usage-agent install --host claude-code
+usage-agent update
+```
+
+`usage-agent update` 适用于从本 Git checkout 通过 `npm link` 安装的情况：要求仓库工作区干净，然后从 `origin` 对当前分支执行 fast-forward-only 更新并运行 `npm install`。如果是非 Git 安装，按以下命令手动更新：
+
+```bash
+git -C /path/to/skill-usage-agent pull --ff-only origin main
+npm --prefix /path/to/skill-usage-agent/usage/collector install
 ```
 
 ## 7. 其他宿主
@@ -257,5 +275,4 @@ command -v usage-agent
 cat ~/.skill-usage/adapters/claude-code.json
 ```
 
-确认 Claude Code 从正确项目目录启动，`.claude/settings.local.json` 是合法 JSON，Hook 命令使用绝对路径，并且 matcher 是 `Skill`。
-
+确认 Claude Code 从正确项目目录启动，`.claude/settings.local.json` 是合法 JSON，Hook 命令使用绝对路径；`Skill` 工具 Hook 的 matcher 应为 `Skill`，直接 Slash 的 `UserPromptExpansion` matcher 应为空字符串。
