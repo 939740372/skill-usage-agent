@@ -16,7 +16,7 @@ usage-agent status
 包发布到 npm 后，可将第一行替换为：
 
 ```bash
-npm install --global @mings/skill-usage-agent
+npm install --global @ryantorres/skill-usage-agent
 ```
 
 `setup` 会创建本地 Usage 配置、写入 adapter manifest，并增量合并项目的 `.claude/settings.local.json`；不会删除已有配置，也不会写入 Token。

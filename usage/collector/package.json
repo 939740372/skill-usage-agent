@@ -1,5 +1,5 @@
 {
-  "name": "@mings/skill-usage-agent",
+  "name": "@ryantorres/skill-usage-agent",
   "version": "0.1.0",
   "description": "Local SSO helper and host adapters for Skill Usage V1",
   "type": "module",
