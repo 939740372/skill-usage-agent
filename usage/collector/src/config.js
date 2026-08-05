@@ -1,6 +1,7 @@
 import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs/promises';
+import { packageVersion } from './version.js';
 
 export const usageHome = process.env.SKILL_USAGE_HOME || path.join(os.homedir(), '.skill-usage');
 export const configPath = path.join(usageHome, 'config.json');
@@ -15,7 +16,7 @@ const defaults = {
   scope: process.env.USAGE_OIDC_SCOPE || 'openid profile email',
   redirectUri: process.env.USAGE_OIDC_REDIRECT_URI || 'http://127.0.0.1:8765/callback',
   requestTimeoutMs: Number(process.env.USAGE_REQUEST_TIMEOUT_MS || 800),
-  collectorVersion: '0.1.0'
+  collectorVersion: packageVersion
 };
 
 export async function ensureDirectories() {

@@ -8,6 +8,14 @@ usage-agent record --host <host> --stdin
 
 事件从 stdin 读取。采集器只保留 Skill 名称、版本、宿主、调用 ID、会话 ID、结果和白名单元数据，不采集 Prompt、代码、文件内容或宿主内部 Token。
 
+Claude Code 快速接入：
+
+```bash
+usage-agent setup --host claude-code --project-dir <project-dir>
+```
+
+该命令会保留已有设置，并增量加入 `Skill` 工具生命周期 Hook 和直接 Slash 的 `UserPromptExpansion` Hook；只需要 adapter 清单时才使用 `usage-agent install --host <host>`。
+
 ## 当前状态
 
 | 宿主 | 接入方式 | 状态 |

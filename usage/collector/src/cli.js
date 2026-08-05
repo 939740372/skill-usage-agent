@@ -1,16 +1,44 @@
 #!/usr/bin/env node
 
 import { createInterface } from 'node:readline';
-import { readConfig, writeConfig } from './config.js';
+import { readConfig } from './config.js';
 import { createCredentialStore, tokenCredentialKey } from './credentials.js';
 import { login, readTokens, decodeJwtPayload } from './oidc.js';
 import { record, flush } from './client.js';
-import { installHost } from './installer.js';
+import { installHost, setupHost } from './installer.js';
 import { updateInstallation } from './update.js';
+import { packageVersion } from './version.js';
 
 function option(args, name) {
   const index = args.indexOf(name);
-  return index >= 0 ? args[index + 1] : null;
+  const value = index >= 0 ? args[index + 1] : null;
+  return value && !value.startsWith('--') ? value : null;
+}
+
+function assertSupportedNode() {
+  const major = Number(process.versions.node.split('.')[0]);
+  if (major < 20) throw new Error(`Node.js 20 or newer is required; found ${process.versions.node}`);
+}
+
+function printHelp() {
+  console.log(`usage-agent ${packageVersion}
+
+Quick start:
+  npm install -g @intretech/skill-usage-agent
+  usage-agent setup --host claude-code --project-dir .
+  usage-agent login
+
+Commands:
+  setup       Configure Usage and merge Claude Code hooks
+  install     Write a host adapter manifest only
+  login       Complete Usage SSO login
+  status      Show configuration and authentication status
+  logout      Remove Usage SSO credentials
+  record      Record one host event from stdin
+  hook        Alias for record
+  flush       Flush pending outbox events
+  update      Update a Git checkout installation
+  version     Print the installed package version`);
 }
 
 async function readStdin() {
@@ -22,7 +50,18 @@ async function readStdin() {
 }
 
 async function main() {
+  assertSupportedNode();
   const [command, ...args] = process.argv.slice(2);
+
+  if (!command || command === 'help' || command === '--help' || command === '-h') {
+    printHelp();
+    return;
+  }
+  if (command === 'version' || command === '--version' || command === '-v') {
+    console.log(packageVersion);
+    return;
+  }
+
   const config = await readConfig();
 
   if (command === 'login') {
@@ -53,6 +92,21 @@ async function main() {
     return;
   }
 
+  if (command === 'setup') {
+    const host = option(args, '--host') || 'claude-code';
+    const result = await setupHost(host, {
+      projectDir: option(args, '--project-dir') || process.cwd(),
+      apiBaseUrl: option(args, '--api-base-url'),
+      issuer: option(args, '--oidc-issuer'),
+      clientId: option(args, '--client-id'),
+      scope: option(args, '--scope'),
+      redirectUri: option(args, '--redirect-uri'),
+      usageAgentBin: option(args, '--bin')
+    });
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
   if (command === 'install') {
     const host = option(args, '--host');
     if (!host) throw new Error('--host is required');
@@ -80,7 +134,7 @@ async function main() {
     return;
   }
 
-  throw new Error('Commands: login, status, logout, install, update, record, hook, flush');
+  throw new Error('Unknown command. Run `usage-agent help` for available commands.');
 }
 
 main().catch(error => {

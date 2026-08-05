@@ -11,9 +11,46 @@
 5. 需要浏览器登录时，打开登录流程并提示用户完成 SSO，不要索要密码。
 6. 真实调用一次 Skill，再执行 `usage-agent flush`，最后报告成功项、失败项和待用户操作项。
 
-## 1. 安装本地采集器
+## 1. 快速安装（推荐）
+
+Node.js 20+ 环境下，直接从 GitHub 安装完整包：
+
+```bash
+npm install --global github:939740372/skill-usage-agent
+usage-agent setup --host claude-code --project-dir "$PWD"
+usage-agent login
+usage-agent status
+```
+
+如果包已发布到 npm，将安装命令替换为：
+
+```bash
+npm install --global @intretech/skill-usage-agent
+```
+
+`setup` 默认使用当前环境或已有配置中的 API/OIDC 参数。需要显式指定时：
+
+```bash
+usage-agent setup --host claude-code --project-dir "$PWD" \
+  --api-base-url "http://10.133.5.15:18080" \
+  --oidc-issuer "http://10.130.79.3:8080/realms/test" \
+  --client-id "skill-usage"
+```
+
+它会创建 `~/.skill-usage/config.json` 和 adapter manifest，并增量合并项目级 `.claude/settings.local.json`；已有 `env`、Hook 和其他键会保留，不会写入 Token。
+
+## 2. 从源码安装本地采集器
 
 在仓库根目录执行：
+
+```bash
+npm install
+npm link
+command -v usage-agent
+usage-agent status
+```
+
+也可以只在 collector 目录安装：
 
 ```bash
 cd usage/collector
@@ -27,7 +64,7 @@ usage-agent status
 
 如果找不到 `usage-agent`，检查 `npm config get prefix` 对应的 `bin` 目录是否在 `PATH` 中，然后重新执行 `npm link`。不要使用明文文件保存 Token。
 
-## 2. 配置认证参数
+## 3. 配置认证参数
 
 当前开发环境：
 
@@ -57,7 +94,7 @@ Add to access token: On
 
 本机回调不是 `10.133.5.15:18080/callback`。浏览器先回到本机 `127.0.0.1:8765`，之后 Hook 才调用远端 REST API。
 
-## 3. 登录并检查状态
+## 4. 登录并检查状态
 
 ```bash
 usage-agent login
@@ -79,7 +116,7 @@ usage-agent logout
 usage-agent login
 ```
 
-## 4. 安装 Claude Code 适配器
+## 5. 安装或检查 Claude Code 适配器
 
 ```bash
 usage-agent install --host claude-code
@@ -157,7 +194,9 @@ usage/examples/claude-code-settings.local.json
 
 `Skill` 工具调用由 `PreToolUse`/`PostToolUse`/`PostToolUseFailure` 捕获；用户直接输入 `/skill-name` 由 `UserPromptExpansion` 捕获。该 Hook 使用空 matcher 监听所有 Prompt 类型的 Slash 命令，采集器只接受 `expansion_type=slash_command`，会忽略 `mcp_prompt`、普通 Prompt 和普通工具事件，且不保存 `command_args`、原始 Prompt 或项目路径。
 
-## 5. 真实验证
+快速安装已经执行过 `setup` 时，不需要再次手工合并 Hook；如果使用 `install`，仍需按下文手工增量合并 `.claude/settings.local.json`。
+
+## 6. 真实验证
 
 从包含 `.claude/settings.local.json` 的项目目录启动 Claude Code，执行一次明确的 Skill 调用。自动化验证可以使用：
 
@@ -184,7 +223,7 @@ usage-agent flush
 
 还应直接输入一次无副作用的 Slash Skill，例如 `/pptx`，并确认输出中出现 `UserPromptExpansion`。直接 Slash 没有稳定的终态 Hook，因此按一次展开记录一条 `started`；没有宿主调用 ID 时，每次 Hook 会生成独立事件 ID。相同宿主调用 ID 的工具 Hook 仍按事件 ID 幂等合并。
 
-## 6. Outbox 与故障降级
+## 7. Outbox 与故障降级
 
 网络或服务不可用时，Hook 不阻塞 Agent，事件写入：
 
@@ -212,6 +251,7 @@ usage-agent login
 usage-agent logout
 usage-agent flush
 usage-agent install --host claude-code
+usage-agent setup --host claude-code --project-dir "$PWD"
 usage-agent update
 ```
 
@@ -222,7 +262,7 @@ git -C /path/to/skill-usage-agent pull --ff-only origin main
 npm --prefix /path/to/skill-usage-agent/usage/collector install
 ```
 
-## 7. 其他宿主
+## 8. 其他宿主
 
 可以先创建适配器清单：
 

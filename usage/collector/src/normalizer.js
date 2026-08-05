@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { packageVersion } from './version.js';
 
 export const HOSTS = ['claude-code', 'codex', 'cursor', 'opencode', 'workbuddy', 'trae'];
 
@@ -117,7 +118,7 @@ export function normalizeHostEvent(raw, host) {
     metadata: {
       ...(raw.hostVersion || raw.host_version ? { hostVersion: String(raw.hostVersion || raw.host_version).slice(0, 256) } : {}),
       ...(rawHookEvent ? { hookEvent: String(rawHookEvent).slice(0, 256) } : {}),
-      collectorVersion: '0.1.0'
+      collectorVersion: packageVersion
     }
   };
 }
