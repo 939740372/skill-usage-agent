@@ -21,5 +21,6 @@ usage/README.md
 - `usage/docs/`：认证和宿主适配补充说明。
 - `usage/examples/`：Claude Code Hook 配置示例。
 
-本仓库不包含数据库密码、Token、SSH 私钥或服务端数据库初始化脚本。
+已通过 `npm link` 安装时，可直接使用 `usage-agent update` 从 GitHub 更新当前 checkout 并安装依赖；命令要求本地工作区没有未提交改动。
 
+本仓库不包含数据库密码、Token、SSH 私钥或服务端数据库初始化脚本。

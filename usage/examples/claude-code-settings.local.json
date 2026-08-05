@@ -41,7 +41,18 @@
           }
         ]
       }
+    ],
+    "UserPromptExpansion": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "<USAGE_AGENT_BIN> record --host claude-code --stdin",
+            "timeout": 3
+          }
+        ]
+      }
     ]
   }
 }
-

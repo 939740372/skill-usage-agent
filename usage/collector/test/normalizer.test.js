@@ -20,6 +20,59 @@ test('normalizes Claude-compatible Skill hook and keeps a stable event id', () =
   assert.equal(first.metadata.hostVersion, '2.1.220');
 });
 
+test('normalizes direct Claude slash Skill expansions', () => {
+  const input = {
+    hook_event_name: 'UserPromptExpansion',
+    expansion_type: 'slash_command',
+    command_name: 'pptx',
+    command_args: 'do not edit files',
+    command_source: 'personal',
+    prompt: '/pptx do not edit files',
+    cwd: '/private/project',
+    session_id: 'session-slash'
+  };
+  const result = normalizeHostEvent(input, 'claude-code');
+
+  assert.equal(result.ignored, undefined);
+  assert.equal(result.skillName, 'pptx');
+  assert.equal(result.sessionId, 'session-slash');
+  assert.equal(result.invocationId, null);
+  assert.equal(result.outcome, 'started');
+  assert.equal(result.metadata.hookEvent, 'UserPromptExpansion');
+  assert.equal(result.metadata.commandArgs, undefined);
+  assert.equal(result.metadata.prompt, undefined);
+  assert.equal(result.metadata.cwd, undefined);
+});
+
+test('preserves namespaced slash Skill names and creates a new id per invocation', () => {
+  const input = {
+    hook_event_name: 'UserPromptExpansion',
+    expansion_type: 'slash_command',
+    command_name: 'slides:pptx',
+    session_id: 'session-slash'
+  };
+  const first = normalizeHostEvent(input, 'claude-code');
+  const second = normalizeHostEvent(input, 'claude-code');
+
+  assert.equal(first.skillName, 'slides:pptx');
+  assert.notEqual(first.eventId, second.eventId);
+});
+
+test('ignores MCP prompt expansions and ordinary prompts', () => {
+  assert.equal(normalizeHostEvent({
+    hook_event_name: 'UserPromptExpansion',
+    expansion_type: 'mcp_prompt',
+    command_name: 'pptx',
+    session_id: 'session-mcp'
+  }, 'claude-code').ignored, true);
+
+  assert.equal(normalizeHostEvent({
+    hook_event_name: 'UserPromptSubmit',
+    prompt: '/pptx',
+    session_id: 'session-prompt'
+  }, 'claude-code').ignored, true);
+});
+
 test('ignores non-Skill tools and unsafe paths', () => {
   assert.equal(normalizeHostEvent({ tool_name: 'Bash', tool_input: { command: 'pwd' } }, 'cursor').ignored, true);
   assert.equal(normalizeHostEvent({ tool_name: 'Skill', tool_input: { skill: '/private/project/SKILL.md' } }, 'codex').ignored, true);

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-import fs from 'node:fs';
 import { createInterface } from 'node:readline';
 import { readConfig, writeConfig } from './config.js';
 import { createCredentialStore, tokenCredentialKey } from './credentials.js';
 import { login, readTokens, decodeJwtPayload } from './oidc.js';
 import { record, flush } from './client.js';
 import { installHost } from './installer.js';
+import { updateInstallation } from './update.js';
 
 function option(args, name) {
   const index = args.indexOf(name);
@@ -61,6 +61,11 @@ async function main() {
     return;
   }
 
+  if (command === 'update') {
+    console.log(JSON.stringify(await updateInstallation(), null, 2));
+    return;
+  }
+
   if (command === 'record' || command === 'hook') {
     const host = option(args, '--host');
     if (!host || !args.includes('--stdin')) throw new Error('usage-agent record --host <host> --stdin');
@@ -75,7 +80,7 @@ async function main() {
     return;
   }
 
-  throw new Error('Commands: login, status, logout, install, record, hook, flush');
+  throw new Error('Commands: login, status, logout, install, update, record, hook, flush');
 }
 
 main().catch(error => {
