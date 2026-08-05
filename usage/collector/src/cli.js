@@ -24,7 +24,7 @@ function printHelp() {
   console.log(`usage-agent ${packageVersion}
 
 Quick start:
-  npm install -g @intretech/skill-usage-agent
+  npm install -g @ryantorres/skill-usage-agent
   usage-agent setup --host claude-code --project-dir .
   usage-agent login
 
