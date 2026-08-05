@@ -13,19 +13,19 @@
 
 ## 1. 快速安装（推荐）
 
-Node.js 20+ 环境下，直接从 GitHub 安装完整包：
+Node.js 20+ 环境下，直接从 npm 安装完整包：
 
 ```bash
-npm install --global github:939740372/skill-usage-agent
+npm install --global @ryantorres/skill-usage-agent
 usage-agent setup --host claude-code --project-dir "$PWD"
 usage-agent login
 usage-agent status
 ```
 
-如果包已发布到 npm，将安装命令替换为：
+如果所在环境无法访问 npm，也可以从 GitHub 安装：
 
 ```bash
-npm install --global @ryantorres/skill-usage-agent
+npm install --global github:939740372/skill-usage-agent
 ```
 
 `setup` 默认使用当前环境或已有配置中的 API/OIDC 参数。需要显式指定时：
