@@ -25,7 +25,7 @@ usage-agent status
 如果包已发布到 npm，将安装命令替换为：
 
 ```bash
-npm install --global @intretech/skill-usage-agent
+npm install --global @mings/skill-usage-agent
 ```
 
 `setup` 默认使用当前环境或已有配置中的 API/OIDC 参数。需要显式指定时：
