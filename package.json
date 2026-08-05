@@ -1,0 +1,44 @@
+{
+  "name": "@intretech/skill-usage-agent",
+  "version": "0.1.0",
+  "description": "Quick-install local SSO helper and Skill Usage V1 host adapters",
+  "type": "module",
+  "bin": {
+    "usage": "usage/collector/src/cli.js",
+    "usage-agent": "usage/collector/src/cli.js"
+  },
+  "files": [
+    "README.md",
+    "usage/README.md",
+    "usage/docs",
+    "usage/examples",
+    "usage/collector/src"
+  ],
+  "scripts": {
+    "test": "npm --prefix usage/collector test",
+    "pack:check": "npm pack --dry-run",
+    "prepublishOnly": "npm test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "skill",
+    "usage",
+    "claude-code",
+    "oidc",
+    "sso"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/939740372/skill-usage-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/939740372/skill-usage-agent/issues"
+  },
+  "homepage": "https://github.com/939740372/skill-usage-agent#readme",
+  "license": "UNLICENSED",
+  "optionalDependencies": {
+    "keytar": "^7.9.0"
+  }
+}
